@@ -61,13 +61,19 @@ def relabel(img):
     return img
 
 
-def evaluateModel(args, model, up, image_list):
+def evaluateModel(args, model, up, vid_source):
     # gloabl mean and std values
     mean = [72.3923111, 82.90893555, 73.15840149]
     std = [45.3192215, 46.15289307, 44.91483307]
 
-    for i, imgName in enumerate(image_list):
-        img = cv2.imread(imgName)
+    cap = cv2.VideoCapture(vid_source)
+
+    while True:
+        ret, img = cap.read()
+
+        if ret == False:
+          break
+
         if args.overlay:
             img_orig = np.copy(img)
 
@@ -86,20 +92,22 @@ def evaluateModel(args, model, up, image_list):
         img = img.transpose((2, 0, 1))
         img_tensor = torch.from_numpy(img)
         img_tensor = torch.unsqueeze(img_tensor, 0)  # add a batch dimension
-        img_variable = Variable(img_tensor, volatile=True)
+        img_variable = Variable(img_tensor)
         if args.gpu:
             img_variable = img_variable.cuda()
-        img_out = model(img_variable)
 
-        if args.modelType == 2:
+        with torch.no_grad():
+          img_out = model(img_variable)
+          
+          if args.modelType == 2:
             img_out = up(img_out)
 
         classMap_numpy = img_out[0].max(0)[1].byte().cpu().data.numpy()
 
-        if i % 100 == 0:
-            print(i)
+        #if i % 100 == 0:
+        #    print(i)
 
-        name = imgName.split('/')[-1]
+        name = "output.jpg" #imgName.split('/')[-1]
 
         if args.colored:
             classMap_numpy_color = np.zeros((img.shape[1], img.shape[2], img.shape[0]), dtype=np.uint8)
@@ -115,11 +123,12 @@ def evaluateModel(args, model, up, image_list):
             classMap_numpy = relabel(classMap_numpy.astype(np.uint8))
 
         cv2.imwrite(args.savedir + os.sep + name.replace(args.img_extn, 'png'), classMap_numpy)
+    cap.release()
 
 
 def main(args):
     # read all the images in the folder
-    image_list = glob.glob(args.data_dir + os.sep + '*.' + args.img_extn)
+    image_list = args.data_dir #glob.glob(args.data_dir + os.sep + '*.' + args.img_extn)
 
     up = None
     if args.modelType == 2:
@@ -162,13 +171,13 @@ def main(args):
 
 if __name__ == '__main__':
     parser = ArgumentParser()
-    parser.add_argument('--model', default="ESPNet", help='Model name')
-    parser.add_argument('--data_dir', default="./data", help='Data directory')
+    parser.add_argument('--model', default="ESPNet-C", help='Model name')
+    parser.add_argument('--data_dir', default="./data/challenge.mp4", help='Data directory')
     parser.add_argument('--img_extn', default="png", help='RGB Image format')
     parser.add_argument('--inWidth', type=int, default=1024, help='Width of RGB image')
     parser.add_argument('--inHeight', type=int, default=512, help='Height of RGB image')
     parser.add_argument('--scaleIn', type=int, default=1, help='For ESPNet-C, scaleIn=8. For ESPNet, scaleIn=1')
-    parser.add_argument('--modelType', type=int, default=1, help='1=ESPNet, 2=ESPNet-C')
+    parser.add_argument('--modelType', type=int, default=2, help='1=ESPNet, 2=ESPNet-C')
     parser.add_argument('--savedir', default='./results', help='directory to save the results')
     parser.add_argument('--gpu', default=True, type=bool, help='Run on CPU or GPU. If TRUE, then GPU.')
     parser.add_argument('--decoder', type=bool, default=True,
@@ -185,7 +194,7 @@ if __name__ == '__main__':
     parser.add_argument('--classes', default=20, type=int, help='Number of classes in the dataset. 20 for Cityscapes')
 
     args = parser.parse_args()
-    assert (args.modelType == 1) and args.decoder, 'Model type should be 2 for ESPNet-C and 1 for ESPNet'
+    #assert (args.modelType == 1) and args.decoder, 'Model type should be 2 for ESPNet-C and 1 for ESPNet'
     if args.overlay:
         args.colored = True # This has to be true if you want to overlay
     main(args)
