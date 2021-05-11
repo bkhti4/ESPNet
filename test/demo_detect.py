@@ -67,7 +67,7 @@ def evaluateModel(args, model, up, vid_source):
     std = [45.3192215, 46.15289307, 44.91483307]
 
     cap = cv2.VideoCapture(vid_source)
-    show_img = False
+    show_img = True
 
     while True:
         ret, img = cap.read()
@@ -161,10 +161,10 @@ def main(args):
     # set to evaluation mode
     modelA.eval()
 
-    if not os.path.isdir(args.savedir):
-        os.mkdir(args.savedir)
+    #if not os.path.isdir(args.savedir):
+    #    os.mkdir(args.savedir)
 
-    evaluateModel(args, modelA, up, args.data_dir)
+    evaluateModel(args, modelA, up, args.source)
 
 
 if __name__ == '__main__':
