@@ -69,6 +69,8 @@ def evaluateModel(args, model, up, vid_source):
     cap = cv2.VideoCapture(vid_source)
     show_img = True
 
+    times_infer, times_pipe = [], []
+
     while True:
         ret, img = cap.read()
 
@@ -117,7 +119,22 @@ def evaluateModel(args, model, up, vid_source):
 
         t2 = time.time()
 
-        print("Inference Speed: %.3f FPS" % (1/(t1-t0)))
+        t1 = time.time()
+        t2 = time.time()
+
+        times_infer.append(t1-t0)
+        times_pipe.append(t2-t0)
+            
+        times_infer = times_infer[-20:]
+        times_pipe = times_pipe[-20:]
+
+        ms = sum(times_infer)/len(times_infer)*1000
+        fps_infer = 1000 / (ms+0.00001)
+        fps_pipe = 1000 / (sum(times_pipe)/len(times_pipe)*1000)
+            
+        overlayed = cv2.putText(overlayed, "Time: {:.1f}FPS".format(fps_infer), (0, 30), cv2.FONT_HERSHEY_COMPLEX_SMALL, 1, (0, 0, 255), 2)
+
+        print("Time: {:.2f}ms, Detection FPS: {:.1f}, total FPS: {:.1f}".format(ms, fps_infer, fps_pipe))
 
         if show_img:
           cv2.imshow(args.model, overlayed)
@@ -173,10 +190,10 @@ if __name__ == '__main__':
     parser.add_argument('--source', default="./data/challenge.mp4", help='Data directory')
     parser.add_argument('--inWidth', type=int, default=1024, help='Width of RGB image')
     parser.add_argument('--inHeight', type=int, default=512, help='Height of RGB image')
-    parser.add_argument('--scaleIn', type=int, default=1, help='For ESPNet-C, scaleIn=8. For ESPNet, scaleIn=1')
+    parser.add_argument('--scaleIn', type=int, default=8, help='For ESPNet-C, scaleIn=8. For ESPNet, scaleIn=1')
     parser.add_argument('--modelType', type=int, default=2, help='1=ESPNet, 2=ESPNet-C')
     parser.add_argument('--gpu', default=True, type=bool, help='Run on CPU or GPU. If TRUE, then GPU.')
-    parser.add_argument('--decoder', type=bool, default=True,
+    parser.add_argument('--decoder', type=bool, default=False,
                         help='True if ESPNet. False for ESPNet-C')  # False for encoder
     parser.add_argument('--weightsDir', default='../pretrained/', help='Pretrained weights directory.')
     parser.add_argument('--p', default=2, type=int, help='depth multiplier. Supported only 2')
