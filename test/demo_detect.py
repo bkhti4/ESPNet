@@ -67,7 +67,7 @@ def evaluateModel(args, model, up, vid_source):
     std = [45.3192215, 46.15289307, 44.91483307]
 
     cap = cv2.VideoCapture(vid_source)
-    show_img = True
+    show_img = False
 
     times_infer, times_pipe = [], []
 
@@ -136,7 +136,7 @@ def evaluateModel(args, model, up, vid_source):
 
         print("Time: {:.2f}ms, Detection FPS: {:.1f}, total FPS: {:.1f}".format(ms, fps_infer, fps_pipe))
 
-        if show_img:
+        if args.show:
           cv2.imshow(args.model, overlayed)
           if cv2.waitKey(1) & 0xFF == ord("q"):
             cv2.destroyAllWindows()
@@ -205,6 +205,7 @@ if __name__ == '__main__':
     parser.add_argument('--overlay', default=True, type=bool, help='If you want to visualize the '
                                                                    'segmentation masks overlayed on top of RGB image')
     parser.add_argument('--classes', default=20, type=int, help='Number of classes in the dataset. 20 for Cityscapes')
+    parser.add_argument('--show', default=False, type=bool, help='if True show image')
 
     args = parser.parse_args()
     #assert (args.modelType == 1) and args.decoder, 'Model type should be 2 for ESPNet-C and 1 for ESPNet'
