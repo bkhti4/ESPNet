@@ -11,23 +11,23 @@ from argparse import ArgumentParser
 
 pallete = [[128, 64, 128],
            [244, 35, 232],
-           [70, 70, 70],
-           [102, 102, 156],
+           [0, 0, 0],
+           [0, 0, 0],
            [190, 153, 153],
            [153, 153, 153],
-           [250, 170, 30],
-           [220, 220, 0],
+           [0, 0, 0],
+           [0, 0, 0],
            [107, 142, 35],
            [152, 251, 152],
-           [70, 130, 180],
-           [220, 20, 60],
-           [255, 0, 0],
-           [0, 0, 142],
-           [0, 0, 70],
-           [0, 60, 100],
-           [0, 80, 100],
-           [0, 0, 230],
-           [119, 11, 32],
+           [0, 0, 0],
+           [0, 0, 0],
+           [0, 0, 0],
+           [0, 0, 0],
+           [0, 0, 0],
+           [0, 0, 0],
+           [0, 0, 0],
+           [0, 0, 0],
+           [0, 0, 0],
            [0, 0, 0]]
 
 
@@ -115,7 +115,7 @@ def evaluateModel(args, model, up, vid_source):
                 [r, g, b] = pallete[idx]
                 classMap_numpy_color[classMap_numpy == idx] = [b, g, r]
             if args.overlay:
-                overlayed = cv2.addWeighted(img_orig, 0.5, classMap_numpy_color, 0.5, 0)
+                overlayed = cv2.addWeighted(img_orig, 0.7, classMap_numpy_color, 0.3, 0)
 
         t2 = time.time()
 
